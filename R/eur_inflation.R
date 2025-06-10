@@ -146,3 +146,71 @@ ggplot(hicp_geral_sa, aes(x = date, y = mm3m_saar_pct)) +
        x        = NULL,
        caption  = "Fonte: Eurostat/Impactus UFRJ") +
   theme_pandora()
+
+
+#--- PPI
+
+# Configuração
+regiao       <- "DE"
+label_regiao <- "Alemanha"
+
+# B-E35
+# B_c_x_MIG_MRG
+# MIG_ING
+# MIG_NRG
+# MIG_CAG
+# MIG_DCOG
+# MIG_NDCOG
+
+
+# Coleta do PPI total para o mercado interno (domestic market)
+ppi_df <- get_macro_data_eurostat(
+  id = "sts_inppd_m",
+  filter_expr = paste0(
+    "geo == '", regiao, "' & ",
+    "nace_r2 == 'B-E36' & ",
+    "s_adj == 'NSA' & ",
+    "unit == 'PCH_SM'"
+  ),
+  time_format = "raw"
+)
+
+# Recodificação da categoria para legenda
+ppi_df <- ppi_df %>%
+  dplyr::mutate(nace_r2 = dplyr::recode(nace_r2,
+                                        "B-E36" = "PPI Total - Mercado Doméstico"))
+
+# Conversão da data e filtro de período
+ppi_df <- ppi_df %>%
+  mutate(date = as.Date(paste0(date, "-01"))) %>%
+  filter(date >= as.Date("2018-01-01"))
+
+# Paleta de cores personalizada
+ppi_palette <- c(
+  "PPI Total - Mercado Doméstico" = "#37A6D9"
+)
+
+# Gráfico
+ggplot(ppi_df, aes(x = date, y = values, color = nace_r2)) +
+  geom_line(size = 1.2) +
+  geom_text(
+    data = ppi_df %>% group_by(nace_r2) %>% slice_max(order_by = date, n = 1),
+    aes(label = sprintf("%.1f", values)),
+    hjust = -0.1, vjust = 0.5, show.legend = FALSE, size = 3.5
+  ) +
+  scale_color_manual(values = ppi_palette) +
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year",
+               expand = expansion(mult = c(0, 0.05))) +
+  labs(title    = paste(label_regiao, ": Índice de Preços ao Produtor (PPI), AS - Variação Anual"),
+       subtitle = paste("Última observação:", format(max(ppi_df$date), "%b %Y")),
+       y        = NULL,
+       x        = NULL,
+       color    = NULL,
+       caption  = "Fonte: Eurostat / Impactus UFRJ") +
+  theme_pandora() +
+  theme(legend.position = "none")
+
+
+
+
+

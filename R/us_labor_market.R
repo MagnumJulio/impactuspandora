@@ -10,7 +10,6 @@ unemp_per_job <- desempregados %>%
   mutate(ratio = value_desemp / value_vagas)
 
 # Gráfico
-library(ggplot2)
 
 ggplot(unemp_per_job, aes(x = date, y = ratio)) +
   geom_line(color = "#cd6726", size = 1.2) +

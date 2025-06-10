@@ -68,26 +68,24 @@ get_macro_data_eurostat <- function(id, filter_expr = NULL, ...) {
 }
 
 
-get_macro_data_ecb <- function(series_key, filter = list(), verbose = TRUE) {
-  if (!requireNamespace("ecb", quietly = TRUE)) {
-    stop("Pacote 'ecb' não está instalado.")
-  }
-  if (!requireNamespace("janitor", quietly = TRUE)) {
-    stop("Pacote 'janitor' não está instalado.")
-  }
-  if (!requireNamespace("dplyr", quietly = TRUE)) {
-    stop("Pacote 'dplyr' não está instalado.")
-  }
-  if (!requireNamespace("lubridate", quietly = TRUE)) {
-    stop("Pacote 'lubridate' não está instalado.")
-  }
+get_macro_data_ecb <- function(series_key, filter = list(), verbose = TRUE, parse_date = "ym") {
+  if (!requireNamespace("ecb", quietly = TRUE)) stop("Pacote 'ecb' não está instalado.")
+  if (!requireNamespace("janitor", quietly = TRUE)) stop("Pacote 'janitor' não está instalado.")
+  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Pacote 'dplyr' não está instalado.")
+  if (!requireNamespace("lubridate", quietly = TRUE)) stop("Pacote 'lubridate' não está instalado.")
 
   df <- ecb::get_data(series_key, filter)
 
   df <- df %>%
     janitor::clean_names() %>%
-    dplyr::rename(date = obstime, value = obsvalue) %>%
-    dplyr::mutate(date = lubridate::ym(date))
+    dplyr::rename(date = obstime, value = obsvalue)
+
+  # Tratamento de data com if simples
+  if (parse_date == "ym") {
+    df$date <- lubridate::ym(df$date)
+  } else if (parse_date == "date") {
+    df$date <- as.Date(df$date)
+  } # se for "none", não faz nada
 
   if ("title" %in% names(df)) {
     df <- dplyr::mutate(df, title = factor(title))
@@ -100,6 +98,7 @@ get_macro_data_ecb <- function(series_key, filter = list(), verbose = TRUE) {
 
   return(df)
 }
+
 
 
 get_fred_data <- function(ticker, start = "2000-01-01", end = Sys.Date()) {

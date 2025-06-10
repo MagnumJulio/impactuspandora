@@ -2,7 +2,7 @@
 
 # Negotiated wages: STS.Q.I9.N.INWR.000000.3.ANR
 filter <- list(lastNObservations = 12, detail = "full")
-wages_df <- get_macro_data_ecb("STS.Q.I9.N.INWR.000000.3.ANR")
+wages_df <- get_macro_data_ecb("STS.Q.I9.N.INWR.000000.3.ANR", parse_date = "ym")
 
 # Formatar
 wages_df <- wages_df %>%
@@ -37,7 +37,7 @@ ggplot(wages_df, aes(x = date, y = value)) +
 
 # Labor productivity: MNA.Q.Y.I9.W0.S1.S1._Z.LPR_PS._Z._T._Z.IX.LR.N
 filter <- list(lastNObservations = 12, detail = "full")
-productivity_df <- get_macro_data_ecb("MNA.Q.Y.I9.W0.S1.S1._Z.LPR_PS._Z._T._Z.IX.LR.N")
+productivity_df <- get_macro_data_ecb("MNA.Q.Y.I9.W0.S1.S1._Z.LPR_PS._Z._T._Z.IX.LR.N", parse_date = "ym")
 
 # Formatar
 productivity_df <- productivity_df %>%
