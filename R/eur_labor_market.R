@@ -69,54 +69,58 @@ ggplot(productivity_df, aes(x = date, y = value)) +
   theme_pandora()
 
 
-# ------
+#-------------
+# Desemprego
 
+# Configuração
+regiao       <- "EA20"
+label_regiao <- "Zona do Euro"
 
-
-#---- CONFIGURAÇÃO ----#
-regiao       <- "EA"             # Código do Eurostat
-label_regiao <- "Zona do Euro"       # Nome exibido nos gráficos
-
-
-#---- unemp ----#
-unemp_df <- get_macro_data_eurostat(
+# Coleta da taxa de desemprego total (ajustada sazonalmente)
+desemprego_df <- get_macro_data_eurostat(
   id = "une_rt_m",
-  filter_expr = paste0("geo == '", regiao, "' & unit == 'pc_at' & s_adj == 'SA"),
-  time_format = "raw",
-  label = "label"
+  filter_expr = paste0(
+    "geo == '", regiao, "' & ",
+    "sex == 'T' & age == 'TOTAL' & ",
+    "s_adj == 'SA' & unit == 'PC_ACT'"
+  ),
+  time_format = "raw"
 )
 
-unemp_df <- unemp_df |>
-  dplyr::mutate(coicop = dplyr::recode(coicop,
-                                       "CP00" = "Geral",
-                                       "FOOD" = "Alimentos, álcool e tabaco",
-                                       "NRG" = "Energia",
-                                       "TOT_X_NRG_FOOD" = "Núcleo"
-  ))
+# Recodificação para legenda
+desemprego_df <- desemprego_df %>%
+  dplyr::mutate(indicador = "Taxa de desemprego")
 
-unemp_filtered <- unemp_df %>%
+# Conversão da data e filtro de período
+desemprego_df <- desemprego_df %>%
   mutate(date = as.Date(paste0(date, "-01"))) %>%
-  filter(date >= as.Date("2017-01-01"))
-ggplot(wages_df, aes(x = date, y = value)) +
-  geom_line(color = "#37A6D9", linewidth = 1.2) +
-  geom_point(data = wages_df %>% slice_tail(n = 1),
-             aes(x = date, y = value),
-             color = "#37A6D9", size = 2) +
-  geom_text(data = wages_df %>% slice_tail(n = 1),
-            aes(label = sprintf("%.1f%%", value)),
-            hjust = -0.1, vjust = -0.5,
-            color = "#37A6D9", size = 4,
-            show.legend = FALSE) +
-  scale_x_date(date_labels = "%Y",
-               date_breaks = "12 months",
-               expand = expansion(mult = c(0, 0.1))) +
-  scale_y_continuous(labels = scales::label_percent(scale = 1)) +
-  labs(title    = "Área do Euro: Salários Negociados",
-       subtitle = paste("Última observação:", format(max(wages_df$date), "%b %Y")),
-       y        = NULL,
-       x        = NULL,
-       caption  = "Fonte: ECB / Impactus UFRJ") +
-  theme_pandora()
+  filter(date >= as.Date("2018-01-01"))
+
+# Paleta de cores personalizada
+desemprego_palette <- c("Taxa de desemprego" = "#166083")
+
+# Gráfico
+ggplot(desemprego_df, aes(x = date, y = values, color = indicador)) +
+  geom_line(size = 1.2) +
+  geom_text(
+    data = desemprego_df %>% group_by(indicador) %>% slice_max(order_by = date, n = 1),
+    aes(label = sprintf("%.1f%%", values)),
+    hjust = -0.1, vjust = 0.5, show.legend = FALSE, size = 3.5
+  ) +
+  scale_color_manual(values = desemprego_palette) +
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year",
+               expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    title    = paste(label_regiao, ": Taxa de Desemprego (ajustada sazonalmente)"),
+    subtitle = paste("Última observação:", format(max(desemprego_df$date), "%b %Y")),
+    y        = NULL,
+    x        = NULL,
+    color    = NULL,
+    caption  = "Fonte: Eurostat / Impactus UFRJ"
+  ) +
+  theme_pandora() +
+  theme(legend.position = "none")
+
 
 
 
