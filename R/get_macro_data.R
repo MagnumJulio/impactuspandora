@@ -14,6 +14,9 @@ library(scales)
 library(purrr)
 library(broom)
 library(stringr)
+library(httr)
+library(jsonlite)
+library(dplyr)
 
 
 #' Acessar dados do Eurostat com filtros padronizados
@@ -175,7 +178,8 @@ theme_pandora <- function(base_size = 15, show_grid = FALSE) {
 }
 
 
-
+pandora_colors <- c("#082631", "#166083", "#37A6D9", "#AFABAB", "#82C1DB")
+polaris_colors <- c("#600100", "#A5480D", "#cd6726")
 
 
 

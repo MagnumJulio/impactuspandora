@@ -17,9 +17,37 @@ ggplot(vix_df, aes(x = date, y = value)) +
                expand = expansion(mult = c(0, 0.05))) +
   scale_y_continuous(limits = c(0, 60)) +
   labs(title    = "VIX - Volatilidade Implícita (S&P 500)",
-       subtitle = paste("Última observação:", format(max(vix_df$date), "%b %Y")),
+       subtitle = paste("Última observação:", format(max(vix_df$date), "%d/%m/%Y")),
        y        = NULL,
        x        = NULL,
        caption  = "Fonte: FRED / Impactus UFRJ") +
   theme_pandora()
 
+# --- Períodos acima de 30
+
+library(dplyr)
+library(lubridate)
+
+vix_df <- vix_df %>%
+  mutate(acima_30 = value > 30)
+
+# Cria grupos contínuos mantendo toda a série
+vix_df <- vix_df %>%
+  mutate(
+    grupo = with(rle(acima_30), rep(seq_along(values), lengths))
+  )
+
+# Filtra apenas os grupos onde acima_30 é TRUE
+vix_periodos <- vix_df %>%
+  group_by(grupo) %>%
+  filter(first(acima_30)) %>%  # garante que o grupo é de VIX > 30
+  summarise(
+    inicio = min(date),
+    fim = max(date),
+    duracao = as.integer(fim - inicio + 1),
+    max_vix = max(value),
+    .groups = "drop"
+  ) %>%
+  arrange(inicio)
+
+print(vix_periodos)

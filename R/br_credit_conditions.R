@@ -87,8 +87,6 @@ saldo_long <- saldo_df |>
 
 # Impactus Pandora - Tema Padrão para ggplot2
 
-# Cores oficiais (em ordem de prioridade)
-pandora_colors <- c("#082631", "#166083", "#37A6D9", "#AFABAB", "#82C1DB")
 
 # Função de tema
 
