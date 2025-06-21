@@ -17,6 +17,8 @@ library(stringr)
 library(httr)
 library(jsonlite)
 library(dplyr)
+library(zoo)
+library(seasonal)
 
 
 #' Acessar dados do Eurostat com filtros padronizados
@@ -178,8 +180,16 @@ theme_pandora <- function(base_size = 15, show_grid = FALSE) {
 }
 
 
+
 pandora_colors <- c("#082631", "#166083", "#37A6D9", "#AFABAB", "#82C1DB")
 polaris_colors <- c("#600100", "#A5480D", "#cd6726")
 
 
+scale_x_pandora <- function(breaks = "2 year", labels = "%Y", expand_right = 0.1) {
+  scale_x_date(
+    date_labels = labels,
+    date_breaks = breaks,
+    expand = expansion(mult = c(0.1, expand_right))
+  )
+}
 
