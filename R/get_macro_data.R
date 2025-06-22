@@ -127,6 +127,15 @@ get_fred_data <- function(ticker, start = "2000-01-01", end = Sys.Date()) {
   return(df)
 }
 
+get_macro_data_japan <- function(series_codes, labels, start_year = 2010, end_year = year(Sys.Date())) {
+  bojdata <- BOJfame::get_bojfame(series_codes = series_codes, start_year = start_year, end_year = end_year)
+  df <- bojdata$data %>%
+    mutate(variable = recode(indicator, !!!labels)) %>%
+    select(date, variable, value = obs_value)
+  df <- df %>% mutate(date = lubridate::ym(date))
+  return(df)
+}
+
 
 get_yahoo_data <- function(tickers = c("^GSPC", "GLD"),
                            start = "2010-01-01", end = Sys.Date()) {

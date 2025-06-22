@@ -245,7 +245,6 @@ df_bop_3m_wide <- df_bop_3m %>%
   filter(!is.na(value))
 
 
-
 # ===============================
 # 2. Dessazonalização (Mensal)
 # ===============================
@@ -279,23 +278,23 @@ df_bop_seasonal_wide <- df_bop_seasonal %>%
   pivot_longer(-c(date, gdp), names_to = "variable", values_to = "value") %>%
   filter(!is.na(value))
 
-
-ggplot(df_bop_3m, aes(x = date, y = value, fill = variable)) +
+ggplot(df_bop_seasonal, aes(x = date, y = value, fill = variable)) +
   geom_col(position = "stack") +
   geom_line(
-    data = df_bop_3m_wide %>% filter(variable == "Current Account (3M)"),
+    data = df_bop_seasonal_wide %>% filter(variable == "Current Account (SA)"),
     aes(x = date, y = value),
     color = "black", size = 1
   ) +
   scale_fill_manual(values = color_bop) +
   labs(
     title = "Current Account - Germany",
-    subtitle = paste("% do PIB, 3M SA - Última observação:", format(max(df_bop_wide$date), "%b %Y")),
+    subtitle = paste("% do PIB, SA - Última observação:", format(max(df_bop_seasonal_wide$date), "%b %Y")),
     x = NULL, y = NULL,
     caption = "Fonte: ECB / Impactus Pandora"
   ) +
-  theme_pandora()+
+  theme_pandora() +
   scale_x_pandora()
+
 
 # -----
 # NFA position
@@ -364,6 +363,15 @@ color_position <- c(
   "Reserve Assets"          = pandora_colors[5],
   "Derivatives"             = pandora_colors[1]
 )
+# --- Filtrar período desejado
+data_inicial <- as.Date("2013-01-01")
+
+df_position_stacked <- df_position_stacked %>%
+  filter(date >= data_inicial)
+
+df_position_wide <- df_position_wide %>%
+  filter(date >= data_inicial)
+
 
 # --- Gráfico final
 ggplot(df_position_stacked, aes(x = date, y = value, fill = variable)) +
@@ -383,7 +391,10 @@ ggplot(df_position_stacked, aes(x = date, y = value, fill = variable)) +
   scale_fill_manual(values = color_position) +
   labs(
     title = "Net International Investment Position - Germany",
-    subtitle = paste("% do PIB, 4Q - Última observação:", format(max(df_position_wide$date), "%b %Y")),
+    subtitle = paste(
+      "% do PIB, 4Q - Última observação:",
+      format(as.Date(as.yearqtr(max(df_position_wide$date)), frac = 1) - 1, "%b %Y")
+    ),
     x = NULL, y = NULL,
     caption = "Fonte: ECB / Impactus Pandora"
   ) +
