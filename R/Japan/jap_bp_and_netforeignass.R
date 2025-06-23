@@ -283,9 +283,23 @@ df_asset_position_jp <- df_asset_position_jp %>%
 df_liabilities_position_jp <- df_liabilities_position_jp %>%
   rename(value_liab = value)
 
+# Aplicar acumulado de 4 trimestres
+df_asset_position_jp <- df_asset_position_jp %>%
+  arrange(variable, date) %>%
+  group_by(variable) %>%
+  mutate(value_asset = zoo::rollmean(value_asset, k = 4, align = "right", fill = NA)) %>%
+  ungroup()
+
+df_liabilities_position_jp <- df_liabilities_position_jp %>%
+  arrange(variable, date) %>%
+  group_by(variable) %>%
+  mutate(value_liab = zoo::rollmean(value_liab, k = 4, align = "right", fill = NA)) %>%
+  ungroup()
+
 # 2. Juntar assets e liabilities por data + variável
 df_niip_jp <- df_asset_position_jp %>%
   full_join(df_liabilities_position_jp, by = c("date", "variable")) %>%
+  filter(!(is.na(value_asset) & is.na(value_liab))) %>%  # remove valores vazios
   mutate(
     value_asset = coalesce(value_asset, 0),
     value_liab  = coalesce(value_liab, 0),
@@ -320,6 +334,16 @@ color_position <- c(
 
 data_inicial <- as.Date("2013-01-01")
 
+# Remover observações iniciais incompletas por conta do rollsum
+df_niip_jp <- df_niip_jp %>%
+  group_by(variable) %>%
+  filter(!is.na(value)) %>%
+  ungroup()
+
+df_wide_jp <- df_wide_jp %>%
+  filter(!is.na(value))
+
+
 df_niip_jp <- df_niip_jp %>%
   filter(date >= data_inicial)
 
@@ -340,7 +364,10 @@ ggplot(df_niip_jp, aes(x = date, y = value, fill = variable)) +
   scale_fill_manual(values = color_position) +
   labs(
     title = "Net International Investment Position - Japan",
-    subtitle = paste("% do PIB, Última observação:", format(max(df_wide_jp$date), "%b %Y")),
+    subtitle = paste(
+      "% do PIB, 4Q - Última observação:",
+      format(as.Date(as.yearqtr(max(df_wide_jp$date)), frac = 1) - 1, "%b %Y")
+    ),
     caption = "Fonte: BoJ / FRED / Impactus Pandora",
     x = NULL, y = NULL
   ) +

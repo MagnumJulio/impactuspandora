@@ -337,11 +337,8 @@ df_position_list <- list(
 df_position_stacked <- bind_rows(df_position_list) %>%
   arrange(variable, date) %>%
   group_by(variable) %>%
-  mutate(value = zoo::rollsum(value, k = 4, align = "right", fill = NA)) %>%
+  mutate(value = zoo::rollmean(value, k = 4, align = "right", fill = NA)) %>%
   ungroup()
-
-# --- Consolidar e unir com PIB trimestral
-df_position_stacked <- bind_rows(df_position_list)
 
 df_position_stacked <- df_position_stacked %>%
   left_join(gdp_quarterly, by = "date") %>%
